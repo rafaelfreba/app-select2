@@ -2,7 +2,7 @@
     <select
         id="{{ $name }}"
         name="{{ $name . ($multiple ? '[]' : '') }}"
-        class="form-control select2-{{ str_replace(['[', ']'], '', $name) }}"
+        class="form-control select2-{{ str_replace(['[', ']'], '', $name) }} {{ $validClass }}"
         @if ($multiple) multiple="multiple" @endif
         style="width: 100%;"
     >
