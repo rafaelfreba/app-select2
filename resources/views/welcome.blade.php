@@ -50,8 +50,11 @@
                             placeholder="Digite o nome do usuário" :selected="old('user_id', $user_id ?? '')" />
                     </div>
                     <div class="form-group">
-                        <x-select2 name="product_id" model="product" label="Selecione um produto"
-                            placeholder="Digite o nome do produto" :selected="old('product_id', $product_id ?? '')" />
+                        <x-select2
+                        name="product_id"
+                        model="product"
+                        :multiple="true"
+                        :selected="old('product_id', isset($product_id) ? $product_id : [])" />
                     </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
 

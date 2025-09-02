@@ -1,16 +1,18 @@
 <div>
-    @if ($label)
-        <label for="{{ $name }}">{{ $label }}</label>
-    @endif
-    <select id="{{ $name }}" name="{{ $name . ($multiple ? '[]' : '') }}"
-        class="form-control select2-{{ $name }} {{ $validClass }}" @if ($multiple) multiple="multiple" @endif
-        style="width: 100%;">
-        @if ($selectedOption)
-            <option value="{{ $selectedOption['id'] }}" selected>
-                {{ $selectedOption['text'] }}
+    <select
+        id="{{ $name }}"
+        name="{{ $name . ($multiple ? '[]' : '') }}"
+        class="form-control select2-{{ str_replace(['[', ']'], '', $name) }}"
+        @if ($multiple) multiple="multiple" @endif
+        style="width: 100%;"
+    >
+        @foreach ($selectedOptions as $option)
+            <option value="{{ $option['id'] }}" selected>
+                {{ $option['text'] }}
             </option>
-        @endif
+        @endforeach
     </select>
+
     @error($name)
         <div class="invalid-feedback">
             {{ $message }}
