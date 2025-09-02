@@ -2,9 +2,20 @@
     @if ($label)
         <label for="{{ $name }}">{{ $label }}</label>
     @endif
-    <select id="{{ $name }}" name="{{ $name . ($multiple ? '[]' : '') }}" class="select2-{{ $name }}" @if ($multiple)
-    multiple="multiple" @endif style="width: 100%;">
+    <select id="{{ $name }}" name="{{ $name . ($multiple ? '[]' : '') }}"
+        class="form-control select2-{{ $name }} {{ $validClass }}" @if ($multiple) multiple="multiple" @endif
+        style="width: 100%;">
+        @if ($selectedOption)
+            <option value="{{ $selectedOption['id'] }}" selected>
+                {{ $selectedOption['text'] }}
+            </option>
+        @endif
     </select>
+    @error($name)
+        <div class="invalid-feedback">
+            {{ $message }}
+        </div>
+    @enderror
 </div>
 
 @push('scripts')
