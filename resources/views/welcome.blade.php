@@ -42,7 +42,7 @@
 <body>
     <div class="container">
         <div class="row">
-            <div class="col">
+            <div class="col pt-5">
                 <form action="{{ route('salvar') }}" method="POST">
                     @csrf
                     <div class="form-group">
@@ -50,11 +50,17 @@
                             placeholder="Digite o nome do usuário" :selected="old('user_id', $user_id ?? '')" />
                     </div>
                     <div class="form-group">
-                        <x-select2
-                        name="product_id"
-                        model="product"
-                        :multiple="true"
-                        :selected="old('product_id', isset($product_id) ? $product_id : [])" />
+                        {{-- 1. Este é o "PAI". O ID dele será "category_id". --}}
+                        <x-select2 name="category_id" model="category" label="Selecione uma categoria"
+                            placeholder="Digite o nome da categoria" :selected="old('category_id', $category_id ?? '')" />
+                    </div>
+
+                    <div class="form-group">
+                        {{-- 2. Este é o "FILHO". Adicione o atributo 'dependent'. --}}
+                        <x-select2 name="product_id" model="product" label="Selecione o(s) produto(s)"
+                            placeholder="Selecione uma categoria primeiro" 
+                            dependent="user_id"
+                            :multiple="true" :selected="old('product_id', isset($product_id) ? $product_id : [])" />
                     </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
 
@@ -63,12 +69,12 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.js"
-        integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+        crossorigin="anonymous"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct"
-        crossorigin="anonymous"></script>
+        integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous">
+    </script>
 
 
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
