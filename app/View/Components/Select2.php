@@ -17,7 +17,9 @@ class Select2 extends Component
         public ?string $placeholder = null,
         public bool $multiple = false,
         public mixed $selected = null,
-        public ?string $validClass = null
+        public ?string $validClass = null,
+        public ?string $dependent = null,
+        public ?string $dependentValue = null,
     ) {
         if ($selected) {
             $modelClass = config('select2.models.' . $model);
