@@ -8,6 +8,7 @@ return [
     'models' => [
         'user' => \App\Models\User::class,
         'product' => \App\Models\Product::class,
+        'category' => \App\Models\Category::class,
         // Adicione outras models aqui
     ],
 ];
