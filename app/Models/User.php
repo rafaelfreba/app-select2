@@ -5,12 +5,12 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Contracts\HasSelect2List;
+use Illuminate\Support\Facades\Log;
 use App\Http\Resources\Select2Resource;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable implements HasSelect2List
 {
@@ -51,7 +51,7 @@ class User extends Authenticatable implements HasSelect2List
         ];
     }
 
-    public static function getSelectList(?string $search = null): AnonymousResourceCollection
+    public static function getSelectList(?string $search = null, ?string $dependValue = null): AnonymousResourceCollection
     {
         $query = static::query();
 
