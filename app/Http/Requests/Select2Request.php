@@ -20,6 +20,7 @@ class Select2Request extends FormRequest
         return [
             'model' => ['required', 'string', 'max:50', Rule::in($allowedModels)],
             'search' => ['nullable', 'string', 'max:255'],
+            'dependValue' => ['nullable', 'integer'],
         ];
     }
 
@@ -27,6 +28,7 @@ class Select2Request extends FormRequest
     {
         $this->merge([
             'model' => strtolower($this->route('model')),
+            'dependValue' => $this->route('dependValue'),
         ]);
     }
 }
