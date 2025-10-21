@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Select2Request;
 use Illuminate\Http\Request;
+use App\Http\Requests\Select2Request;
 
 class Select2Controller extends Controller
 {
@@ -12,8 +12,9 @@ class Select2Controller extends Controller
         $modelClass = config('select2.models.' . $request->validated('model'));
 
         $search = $request->validated('search');
+        $dependValue = $request->validated('dependValue');
 
-        $resource = $modelClass::getSelectList($search);
+        $resource = $modelClass::getSelectList($search, $dependValue);
 
         return $resource;
     }
