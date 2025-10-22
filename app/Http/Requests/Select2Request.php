@@ -20,6 +20,8 @@ class Select2Request extends FormRequest
         return [
             'model' => ['required', 'string', 'max:50', Rule::in($allowedModels)],
             'search' => ['nullable', 'string', 'max:255'],
+            'cascade' => ['nullable', 'string', 'max:255'],
+            'page' => ['nullable', 'integer'], 
         ];
     }
 

@@ -9,6 +9,7 @@ use Illuminate\Contracts\View\View;
 class Select2 extends Component
 {
     public array $selectedOptions = [];
+    public ?string $validClass = null;
 
     public function __construct(
         public string $name,
@@ -17,23 +18,34 @@ class Select2 extends Component
         public ?string $placeholder = null,
         public bool $multiple = false,
         public mixed $selected = null,
-        public ?string $validClass = null
+        public ?string $dependent = null,
+        public ?string $dependentValue = null,
+
+        // --- MELHORIA AQUI: A nova flag ---
+        // Controla se o campo deve ser desabilitado quando o "pai" está vazio.
+        public bool $disableOnEmptyParent = false
     ) {
         if ($selected) {
             $modelClass = config('select2.models.' . $model);
 
             if ($modelClass && class_exists($modelClass) && is_subclass_of($modelClass, HasSelect2List::class)) {
-                // Converte o valor selecionado para um array, se ainda não for
+
                 $selectedIds = is_array($selected) ? $selected : [$selected];
+                $selectedIds = array_filter($selectedIds);
 
-                $items = $modelClass::find($selectedIds);
+                if (!empty($selectedIds)) {
+                    $items = $modelClass::find($selectedIds);
 
-                // Mapeia os itens encontrados para o formato de exibição
-                foreach ($items as $item) {
-                    $this->selectedOptions[] = [
-                        'id' => $item->id,
-                        'text' => $item->name,
-                    ];
+                    if ($items) {
+                        $items = $items instanceof \Illuminate\Database\Eloquent\Collection ? $items : collect([$items]);
+
+                        foreach ($items as $item) {
+                            $this->selectedOptions[] = [
+                                'id' => $item->id,
+                                'text' => $item->name,
+                            ];
+                        }
+                    }
                 }
             }
         }
@@ -42,12 +54,13 @@ class Select2 extends Component
     public function render(): View
     {
         $errors = session()->get('errors');
+        $errorName = str_replace(['[', ']'], '', $this->name);
 
-        if ($errors && $errors->has($this->name)) {
+        if ($errors && $errors->has($errorName)) {
             $this->validClass = 'is-invalid';
         }
 
-        if (old($this->name) && !$errors->has($this->name)) {
+        if (old($errorName) && !$errors->has($errorName)) {
             $this->validClass = 'is-valid';
         }
 

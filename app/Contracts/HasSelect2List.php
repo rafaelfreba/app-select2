@@ -6,5 +6,8 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 interface HasSelect2List
 {
-    public static function getSelectList(?string $search = null): AnonymousResourceCollection;
+    /**
+     * @param array $options Pode conter 'search', 'cascade', 'page', etc.
+     */
+    public static function getSelectList(array $options = []): AnonymousResourceCollection;
 }
