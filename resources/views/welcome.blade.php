@@ -45,22 +45,55 @@
             <div class="col pt-5">
                 <form action="{{ route('salvar') }}" method="POST">
                     @csrf
+                    {{-- Este é um select padrão, sem dependências --}}
                     <div class="form-group">
                         <x-select2 name="user_id" model="user" label="Selecione um usuário"
-                            placeholder="Digite o nome do usuário" :selected="old('user_id', $user_id ?? '')" />
-                    </div>
-                    <div class="form-group">
-                        {{-- 1. Este é o "PAI". O ID dele será "category_id". --}}
-                        <x-select2 name="category_id" model="category" label="Selecione uma categoria"
-                            placeholder="Digite o nome da categoria" :selected="old('category_id', $category_id ?? '')" />
+                            placeholder="Digite o nome do usuário"
+                            :selected="old('user_id', $user_id ?? '')" />
                     </div>
 
+                    {{--
+                      1. Este é o "PAI" da nossa cascata.
+                      O ID dele (name="category_id") será usado no atributo 'dependent' do filho.
+                    --}}
                     <div class="form-group">
-                        {{-- 2. Este é o "FILHO". Adicione o atributo 'dependent'. --}}
+                        <x-select2 name="category_id" model="category" label="Selecione uma categoria"
+                            placeholder="Digite o nome da categoria"
+                            :selected="old('category_id', $category_id ?? '')" />
+                    </div>
+
+                    {{--
+                      2. Este é o "FILHO" padrão.
+                      - dependent="category_id": Diz ao JS qual campo "PAI" ele deve observar.
+                      - :dependent-value="...": Passa o valor inicial do PAI.
+                        Essencial para a rota /editar carregar os dados.
+                    --}}
+                    <div class="form-group">
                         <x-select2 name="product_id" model="product" label="Selecione o(s) produto(s)"
-                            placeholder="Selecione uma categoria primeiro" 
-                            dependent="user_id"
-                            :multiple="true" :selected="old('product_id', isset($product_id) ? $product_id : [])" />
+                            placeholder="Selecione uma categoria primeiro"
+                            dependent="category_id"
+                            :dependent-value="old('category_id', $category_id ?? null)"
+                            :multiple="true"
+                            :selected="old('product_id', isset($product_id) ? $product_id : [])" />
+                    </div>
+
+                    {{--
+                      3. Este é o "FILHO" com a flag de desabilitar.
+                      - dependent="category_id": Mesmo "PAI".
+                      - :disableOnEmptyParent="true": Diz ao JS para desabilitar este campo
+                        se o "PAI" ('category_id') estiver vazio.
+                      - :dependent-value="...": Também essencial para o modo de edição.
+                      - name="product_id_disabled": Nome único.
+                      - :selected="old('product_id_disabled', ...)": Corrigido para usar o nome único.
+                    --}}
+                    <div class="form-group">
+                        <x-select2 name="product_id_disabled" model="product" label="Selecione o(s) produto(s) disabled"
+                            placeholder="Selecione uma categoria primeiro"
+                            dependent="category_id"
+                            :dependent-value="old('category_id', $category_id ?? null)"
+                            :disableOnEmptyParent="true"
+                            :multiple="true"
+                            :selected="old('product_id_disabled', isset($product_id) ? $product_id : [])" /> 
                     </div>
                     <button type="submit" class="btn btn-primary">Submit</button>
 
