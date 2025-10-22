@@ -9,7 +9,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/select2/{model}/{dependValue?}', [Select2Controller::class, 'index'])
+Route::get('/select2/{model}', [Select2Controller::class, 'index'])
     ->name('select2.list');
 
 Route::get('/editar', function(){
