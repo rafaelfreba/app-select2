@@ -1,61 +1,254 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+```
+======================================================
+ GUIA DE USO: COMPONENTE SELECT2 DINÂMICO (LARAVEL)
+======================================================
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Este guia explica como usar o componente Blade <x-select2> para criar caixas de seleção dinâmicas (com busca AJAX), suporte a cascata e validação em seu projeto Laravel.
 
-## About Laravel
+Sumário:
+1. Arquivos Principais do Sistema
+2. Como Adicionar um NOVO Select (Passo a Passo)
+3. Exemplos de Uso (Simples, Múltiplo, Cascata, Edição)
+4. Referência de Atributos do Componente
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+--------------------------------------
+1. ARQUIVOS PRINCIPAIS DO SISTEMA
+--------------------------------------
+Para o componente funcionar, os seguintes arquivos devem estar presentes no projeto:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- [Config]    config/select2.php
+- [Rota]      routes/web.php (Deve conter a rota 'select2.list')
+- [Contrato]  App/Contracts/HasSelect2List.php
+- [Controller] App/Http/Controllers/Select2Controller.php
+- [Request]   App/Http/Requests/Select2Request.php
+- [Resource]  App/Http/Resources/Select2Resource.php
+- [Component] App/View/Components/Select2.php
+- [View]      resources/views/components/select2.blade.php
+- [Models]    App/Models/User.php, Product.php, Category.php (e outras)
+- [Frontend]  Seu layout principal deve carregar:
+              1. jQuery
+              2. Bootstrap CSS/JS
+              3. Select2 CSS/JS
+              4. (O @stack('scripts') DEVE VIR DEPOIS do jQuery e Select2)
 
-## Learning Laravel
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+--------------------------------------
+2. COMO ADICIONAR UM NOVO SELECT (PASSO A PASSO)
+--------------------------------------
+Vamos supor que você precise adicionar um select de "Tags".
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+PASSO 1: O MODELO (App\Models\Tag.php)
+O seu modelo DEVE implementar o contrato `HasSelect2List`.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+<?php
+namespace App\Models;
 
-## Laravel Sponsors
+use App\Contracts\HasSelect2List; // 1. Importar o contrato
+use App\Http\Resources\Select2Resource;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+class Tag extends Model implements HasSelect2List // 2. Implementar o contrato
+{
+    // ... (código normal do modelo) ...
 
-### Premium Partners
+    /**
+     * 3. Adicionar o método getSelectList.
+     * Este é o "coração" da busca.
+     *
+     * @param array $options Contém ['search' => 'texto', 'cascade' => 'valor_pai']
+     */
+    public static function getSelectList(array $options = []): AnonymousResourceCollection
+    {
+        $query = static::query();
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+        $search = $options['search'] ?? null;
+        $cascadeValue = $options['cascade'] ?? null;
 
-## Contributing
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+        
+        // Se este modelo dependesse de outro (ex: Post):
+        // if ($cascadeValue) {
+        //     $query->where('post_id', $cascadeValue);
+        // }
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+        $items = $query->paginate(15);
 
-## Code of Conduct
+        return Select2Resource::collection($items);
+    }
+}
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-## Security Vulnerabilities
+PASSO 2: REGISTRAR O MODELO (config/select2.php)
+Adicione seu novo modelo ao array 'models'. A "chave" (ex: 'tag') é o nome que você usará no Blade.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+<?php
+return [
+    'models' => [
+        'user' => \App\Models\User::class,
+        'product' => \App\Models\Product::class,
+        'category' => \App\Models\Category::class,
+        
+        'tag' => \App\Models\Tag::class, // <-- ADICIONADO AQUI
+    ],
+];
 
-## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+PASSO 3: USAR NO BLADE (.blade.php)
+Agora você pode chamar o componente na sua view usando a chave 'tag' que você registrou.
+
+<div class="form-group">
+    <x-select2 
+        name="tag_id" 
+        model="tag" 
+        label="Selecione uma Tag"
+        placeholder="Digite o nome da tag" 
+        :selected="old('tag_id', $tag_id ?? '')"
+    />
+</div>
+
+
+--------------------------------------
+3. EXEMPLOS DE USO
+--------------------------------------
+
+---
+EXEMPLO 1: SELECT SIMPLES (Ex: Usuário)
+---
+Uso mais básico. Busca usuários pelo nome.
+
+<x-select2 
+    name="user_id" 
+    model="user" 
+    label="Selecione um usuário"
+    placeholder="Digite o nome do usuário" 
+    :selected="old('user_id', $user_id ?? '')" 
+/>
+
+
+---
+EXEMPLO 2: SELECT MÚLTIPLO (Ex: Produtos)
+---
+Adicione a flag `:multiple="true"`. O componente já trata de colocar `[]` no nome do campo.
+
+<x-select2 
+    name="product_id" 
+    model="product" 
+    label="Selecione o(s) produto(s)"
+    placeholder="Selecione..."
+    :multiple="true" 
+    :selected="old('product_id', $produtos_selecionados ?? [])" 
+/>
+
+
+---
+EXEMPLO 3: SELECTS EM CASCATA (PAI E FILHO)
+---
+Um select (Filho) que depende de outro (Pai).
+
+<div class="form-group">
+    <x-select2 
+        name="category_id" 
+        model="category" 
+        label="Categoria (PAI)"
+        placeholder="Selecione uma categoria"
+        :selected="old('category_id', $category_id ?? '')" 
+    />
+</div>
+
+<div class="form-group">
+    <x-select2 
+        name="product_id" 
+        model="product" 
+        label="Produto (FILHO)"
+        placeholder="Selecione uma categoria primeiro"
+        :multiple="true" 
+        :selected="old('product_id', $product_id ?? [])" 
+        
+        {{-- Diz ao JS qual campo PAI ele deve observar. (DEVE ser o 'name' do PAI) --}}
+        dependent="category_id" 
+        
+        {{-- Desabilita este campo se o PAI estiver vazio (padrão: false) --}}
+        :disableOnEmptyParent="true" 
+    />
+</div>
+
+
+---
+EXEMPLO 4: FORMULÁRIOS DE EDIÇÃO (COM DADOS SELECIONADOS)
+---
+O segredo é usar `:selected` para o valor do próprio campo e `:dependent-value` para passar o valor *inicial do PAI* para o FILHO.
+
+<div class="form-group">
+    <x-select2 
+        name="category_id" 
+        model="category" 
+        label="Categoria (PAI)"
+        placeholder="Selecione uma categoria"
+        
+        {{-- :selected pré-seleciona o valor do PAI --}}
+        :selected="old('category_id', $category_id ?? null)" 
+    />
+</div>
+
+<div class="form-group">
+    <x-select2 
+        name="product_id" 
+        model="product" 
+        label="Produto (FILHO)"
+        placeholder="Selecione uma categoria primeiro"
+        :multiple="true" 
+        
+        {{-- :selected pré-seleciona o(s) valor(es) do FILHO --}}
+        :selected="old('product_id', $product_id ?? [])" 
+        
+        {{-- O 'dependent' continua o mesmo --}}
+        dependent="category_id" 
+        
+        {{-- CRÍTICO: Passa o valor inicial do PAI para o FILHO --}}
+        :dependent-value="old('category_id', $category_id ?? null)" 
+    />
+</div>
+
+
+--------------------------------------
+4. REFERÊNCIA DE ATRIBUTOS DO COMPONENTE
+--------------------------------------
+
+Estes são os atributos que você pode passar para o `<x-select2 ... />`
+
+- name (string, OBRIGATÓRIO)
+  O atributo `name` do <select>. (ex: "user_id")
+
+- model (string, OBRIGATÓRIO)
+  A "chave" de referência definida em `config/select2.php`. (ex: "user")
+
+- label (string, Opcional)
+  O texto a ser exibido no `<label>`. Se omitido, usa o `name` do campo.
+
+- placeholder (string, Opcional)
+  O texto de placeholder do Select2.
+
+- multiple (bool, Opcional)
+  Defina como `true` para um select de múltipla escolha. Padrão: `false`.
+
+- selected (mixed, Opcional)
+  Usado para formulários de edição. Passe o ID (para select simples) ou um array de IDs (para select múltiplo) que devem vir pré-selecionados.
+
+- dependent (string, Opcional)
+  O `name` (ou `id` do HTML) do campo PAI do qual este select depende. (ex: "category_id")
+
+- dependent-value (mixed, Opcional)
+  Usado para formulários de edição em cascata. Passe o valor INICIAL do campo PAI.
+
+- disable-on-empty-parent (bool, Opcional)
+  Se `true`, o campo será desabilitado (`disabled`) automaticamente se o campo PAI estiver vazio. Padrão: `true`.
+  Use `:disable-on-empty-parent="false"` para desativar este comportamento.
+
+- class (string, Opcional)
+  Permite adicionar classes CSS customizadas diretamente ao elemento `<select>`.
+```
+
