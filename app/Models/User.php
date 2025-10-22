@@ -51,9 +51,11 @@ class User extends Authenticatable implements HasSelect2List
         ];
     }
 
-    public static function getSelectList(?string $search = null, ?string $dependValue = null): AnonymousResourceCollection
+    public static function getSelectList(array $options = []): AnonymousResourceCollection
     {
         $query = static::query();
+
+        $search = $options['search'] ?? null;
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
