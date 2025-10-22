@@ -11,14 +11,21 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class Product extends Model implements HasSelect2List
 {
     use HasFactory;
-    public static function getSelectList(?string $search = null, ?string $dependValue = null): AnonymousResourceCollection
+
+    // ATUALIZADO: Assinatura do método e lógica interna
+    public static function getSelectList(array $options = []): AnonymousResourceCollection
     {
         $query = static::query();
 
-        if ($dependValue) {
-            $query->where('category_id', $dependValue);
+        // Extrai os valores do array de opções
+        $search = $options['search'] ?? null;
+        $cascadeValue = $options['cascade'] ?? null; // Usando o novo nome
+
+        // Lógica de dependência com o novo nome
+        if ($cascadeValue) {
+            $query->where('category_id', $cascadeValue);
         }
-        
+
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
         }
@@ -27,5 +34,4 @@ class Product extends Model implements HasSelect2List
 
         return Select2Resource::collection($products);
     }
-
 }
