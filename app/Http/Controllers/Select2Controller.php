@@ -11,10 +11,9 @@ class Select2Controller extends Controller
     {
         $modelClass = config('select2.models.' . $request->validated('model'));
 
-        $search = $request->validated('search');
-        $dependValue = $request->validated('dependValue');
+        $options = $request->validated();
 
-        $resource = $modelClass::getSelectList($search, $dependValue);
+        $resource = $modelClass::getSelectList($options);
 
         return $resource;
     }
