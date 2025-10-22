@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Contracts\HasSelect2List;
 use App\Http\Resources\Select2Resource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class Category extends Model
+class Category extends Model implements HasSelect2List
 {
     use HasFactory;
     protected $fillable = ['name'];
@@ -18,9 +19,11 @@ class Category extends Model
         return $this->hasMany(Product::class);
     }
 
-    public static function getSelectList(?string $search = null, ?string $dependValue = null): AnonymousResourceCollection
+    public static function getSelectList(array $options = []): AnonymousResourceCollection
     {
         $query = static::query();
+
+        $search = $options['search'] ?? null;
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
